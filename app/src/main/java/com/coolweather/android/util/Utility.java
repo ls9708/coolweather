@@ -3,6 +3,10 @@ package com.coolweather.android.util;
 import android.text.TextUtils;
 
 import com.coolweather.android.db.City;
+import com.coolweather.android.db.County;
+import com.coolweather.android.db.Province;
+import com.coolweather.android.gson.Weather;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,6 +17,7 @@ import org.json.JSONObject;
  */
 
 public class Utility {
+
     /**
     * 解析和处理服务器返还的省级数据
     * */
@@ -21,11 +26,11 @@ public class Utility {
             try {
                 JSONArray allCities = new JSONArray(response);
                 for (int i=0;i<allCities.length();i++) {
-                    JSONObject cityObject = allCities.getJSONObject(i);
-                    City city = new City();
-                    city.setCityName(cityObject.getString("name"));
-                    city.setCityCode(cityObject.getInt("id"));
-                    city.save();
+                    JSONObject provinceObject = allCities.getJSONObject(i);
+                    Province province = new Province();
+                    province.setProvinceName(provinceObject.getString("name"));
+                    province.setProvinceCode(provinceObject.getInt("id"));
+                    province.save();
                 }
                 return true;
             } catch (JSONException e) {
@@ -66,12 +71,12 @@ public class Utility {
             try {
                 JSONArray allCities = new JSONArray(response);
                 for (int i=0;i<allCities.length();i++) {
-                    JSONObject cityObject = allCities.getJSONObject(i);
-                    City city = new City();
-                    city.setCityName(cityObject.getString("name"));
-                    city.setCityCode(cityObject.getInt("id"));
-                    city.setProvinceId(cityId);
-                    city.save();
+                    JSONObject countyObject = allCities.getJSONObject(i);
+                    County county = new County();
+                    county.setCountyName(countyObject.getString("name"));
+                    county.setWeatherId(countyObject.getString("weather_id"));
+                    county.setCityId(cityId);
+                    county.save();
                 }
                 return true;
             } catch (JSONException e) {
@@ -80,4 +85,19 @@ public class Utility {
         }
         return false;
     }
+    /**
+     *将返还的JSON数据解析成Weather实体类
+     */
+    public static Weather handleWeatherResponse(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray jsonArray = jsonObject.getJSONArray("HeWeather");
+            String weatherContent = jsonArray.getJSONObject(0).toString();
+            return new Gson().fromJson(weatherContent, Weather.class);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }
