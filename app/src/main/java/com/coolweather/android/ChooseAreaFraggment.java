@@ -103,6 +103,7 @@ public class ChooseAreaFraggment extends Fragment {
                 } else if (currentLevel == LEVEL_COUNTY) {
                     String weatherId = countyList.get(i).getWeatherId();
                     Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                    intent.putExtra("weather_Id", weatherId);
                     startActivity(intent);
                     getActivity().finish();
                 }
@@ -145,6 +146,27 @@ public class ChooseAreaFraggment extends Fragment {
     }
 
     /**
+     *查询全国所有的省份，优先从数据库查询，如果没有查询到再去服务器上查询
+     */
+    private void queryProvinces() {
+        titleText.setText("中国");
+        backButton.setVisibility(View.GONE);
+        provinceList = DataSupport.findAll(Province.class);
+        if (provinceList.size() > 0) {
+            dataList.clear();
+            for (Province province : provinceList) {
+                dataList.add(province.getProvinceName());
+            }
+            adapter.notifyDataSetChanged();
+            listView.setSelection(0);
+            currentLevel = LEVEL_PROVINCE;
+        } else {
+            String address = "http://guolin.tech/api/china";
+            queryFromServer(address, "province");
+        }
+    }
+
+    /**
      *查询选中省内所有市，优先从数据库查询，如果没有查询到再去服务器上查询
      */
     private void queryCities() {
@@ -163,27 +185,6 @@ public class ChooseAreaFraggment extends Fragment {
             int provinceCode = selectedProvince.getProvinceCode();
             String address = "http://guolin.tech/api/china/"+provinceCode;
             queryFromServer(address, "city");
-        }
-    }
-
-    /**
-     *查询全国所有的省份，优先从数据库查询，如果没有查询到再去服务器上查询
-     */
-    private void queryProvinces() {
-        titleText.setText("中国");
-        backButton.setVisibility(View.GONE);
-        provinceList = DataSupport.findAll(Province.class);
-        if (provinceList.size() > 0) {
-            dataList.clear();
-            for (Province province : provinceList) {
-                dataList.add(province.getProvinceName());
-            }
-            adapter.notifyDataSetChanged();
-            listView.setSelection(0);
-            currentLevel = LEVEL_PROVINCE;
-        } else {
-            String address = "http://guolin.tech/api/china";
-            queryFromServer(address, "province");
         }
     }
 
